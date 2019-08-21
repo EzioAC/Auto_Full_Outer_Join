@@ -13,7 +13,7 @@ namespace 自动全外连接
     {
         static void Main(string[] args)
         {
-
+            //设置编码
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             string csv1 = @".\1.csv";
             string csv2 = @".\2.csv";
@@ -22,7 +22,6 @@ namespace 自动全外连接
             {
                 //测试 跳过输入输出~
             }
-
             else if (args.Length == 0)
             {
                 IO(ref csv1, ref csv2, ref output);
