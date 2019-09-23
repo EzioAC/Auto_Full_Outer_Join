@@ -52,6 +52,7 @@ namespace 自动全外连接
                 //listStrArr.Add(read.Split(","));//将文件内容分割成数组
                 //正则匹配 
                 MatchCollection mcs = Regex.Matches(read, "(?<=^|,)(\"(?:[^\"]|\"\")*\"|[^,]*)");
+                //统一加上双引号
                 listStrArr.Add(mcs.Select(x=>PaddingQuotes(x.Value)).ToArray());
                 read = reader.ReadLine();
             }
@@ -73,6 +74,11 @@ namespace 自动全外连接
             {
                 colname1 = data1.First();
                 data1.Remove(colname1);
+                //避免以0开头的债券被excel处理,导致债券代码一个有0一个没0,最终没有匹配在一行
+                for(int i=0;i<data1.Count;i++)
+                {
+                    data1[i][0] = PaddingQuotes(data1[i][0].Trim('\"').TrimStart('0'));
+                }
                 data1 = data1.OrderBy(strs => strs[0]).ToArray();
                 len1 = colname1.Length;
             }
@@ -80,6 +86,11 @@ namespace 自动全外连接
             {
                 colname2 = data2.First();
                 data2.Remove(colname2);
+                //避免以0开头的债券被excel处理,导致债券代码一个有0一个没0,最终没有匹配在一行
+                for(int i=0;i<data2.Count;i++)
+                {
+                    data2[i][0] = PaddingQuotes(data2[i][0].Trim('\"').TrimStart('0'));
+                }
                 data2 = data2.OrderBy(strs => strs[0]).ToArray();
                 len2 = colname2.Length;
             }
@@ -88,6 +99,7 @@ namespace 自动全外连接
             {
                 var left = data1[idx1][0];
                 var right = data2[idx2][0];
+                
                 if (left == right)
                 {
                     res.Add(data1[idx1].Concat(data2[idx2]).ToArray());
@@ -105,14 +117,16 @@ namespace 自动全外连接
                     idx2++;
                 }
             }
+            //1.csv还有数据没有匹配
             while (idx1 < data1.Count)
             {
                 res.Add(data1[idx1].Concat(new string[len2]).ToArray());
                 idx1++;
             }
+            //2.csv还有数据没有匹配
             while (idx2 < data2.Count)
             {
-                res.Add(new string[len2].Concat(data2[idx2]).ToArray());
+                res.Add(new string[len1].Concat(data2[idx2]).ToArray());
                 idx2++;
             }
             return res;
