@@ -16,7 +16,7 @@ namespace 自动全外连接
         {
             //设置编码
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-            string csv1 = @".\1.csv";
+            string csv1 = @".\1.xlsx";
             string csv2 = @".\2.csv";
             string output = @".\result" + DateTime.Now.Ticks + @".csv";
             if (args.Length > 0 && args[0] == "-t")
@@ -75,7 +75,7 @@ namespace 自动全外连接
                         {
                             list.Add("");
                         }
-                        list.Add(cell.ToString());
+                        list.Add(PaddingQuotes(cell.ToString()));
                     }
                     listStrArr.Add(list.ToArray());
                 }
@@ -100,24 +100,14 @@ namespace 自动全外连接
                     //第一行为列名
                     colname1 = data1.First();
                     data1.Remove(colname1);
-                    //避免以0开头的债券被excel处理,导致债券代码一个有0一个没0,最终没有匹配在一行
-                    for (int i = 0; i < data1.Count; i++)
-                    {
-                        data1[i][0] = PaddingQuotes(data1[i][0].Trim('\"').TrimStart('0'));
-                    }
-                    data1 = data1.OrderBy(strs => strs[0]).ToArray();
+                    data1 = data1.OrderBy(strs => TrimStartZero(strs[0])).ToArray();
                     len1 = colname1.Length;
                 }
                 if (data2.Count > 1)
                 {
                     colname2 = data2.First();
                     data2.Remove(colname2);
-                    //避免以0开头的债券被excel处理,导致债券代码一个有0一个没0,最终没有匹配在一行
-                    for (int i = 0; i < data2.Count; i++)
-                    {
-                        data2[i][0] = PaddingQuotes(data2[i][0].Trim('\"').TrimStart('0'));
-                    }
-                    data2 = data2.OrderBy(strs => strs[0]).ToArray();
+                    data2 = data2.OrderBy(strs => TrimStartZero(strs[0])).ToArray();
                     len2 = colname2.Length;
                 }
                 res.Add(colname1.Concat(colname2).ToArray());
@@ -125,14 +115,13 @@ namespace 自动全外连接
                 {
                     var left = data1[idx1][0];
                     var right = data2[idx2][0];
-
-                    if (left == right)
+                    if (TrimStartZero(left) == TrimStartZero(right))
                     {
                         res.Add(data1[idx1].Concat(data2[idx2]).ToArray());
                         idx1++;
                         idx2++;
                     }
-                    else if (string.Compare(left, right) < 0)
+                    else if (string.Compare(TrimStartZero(left), TrimStartZero(right)) < 0)
                     {
                         res.Add(data1[idx1].Concat(new string[len2]).ToArray());
                         idx1++;
@@ -219,7 +208,12 @@ namespace 自动全外连接
                 }
                 return str;
             }
-        
+            
+            //避免以债券开头的0被Excel处理掉
+            static string TrimStartZero(string str)
+            {
+                return PaddingQuotes(str.Trim('\"').TrimStart('0'));
+            }
             static IList<string[]> File2Array(string path)
             {
                 if(path.EndsWith(".xlsx"))
@@ -236,7 +230,6 @@ namespace 自动全外连接
                     return new List<string[]>();
                 }
             }
-
             static void Array2File(string output,IList<string[]> data)
             {
                 if(output.EndsWith(".xlsx"))
