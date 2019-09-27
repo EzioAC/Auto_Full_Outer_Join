@@ -16,9 +16,9 @@ namespace 自动全外连接
         {
             //设置编码
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-            string csv1 = @".\1.xlsx";
+            string csv1 = @".\1.csv";
             string csv2 = @".\2.csv";
-            string output = @".\result" + DateTime.Now.Ticks + @".csv";
+            string output = @".\result" + DateTime.Now.Ticks + @".xlsx";
             if (args.Length > 0 && args[0] == "-t")
             {
                 //测试 跳过输入输出~
@@ -193,7 +193,7 @@ namespace 自动全外连接
                     {
                         IRow row = sheet1.CreateRow(i);
                         for (int j = 0; j < data[i].Length; j++)
-                            row.CreateCell(j).SetCellValue(data[i][j]);
+                            row.CreateCell(j).SetCellValue(data[i][j].Trim('\"'));
                     }
                     workbook.Write(fs);
                 }
