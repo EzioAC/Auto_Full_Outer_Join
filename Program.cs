@@ -14,6 +14,7 @@ namespace 自动全外连接
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("AOFJ v0.31");
             //设置编码
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             string csv1 = @".\1.csv";
@@ -100,6 +101,8 @@ namespace 自动全外连接
                     //第一行为列名
                     colname1 = data1.First();
                     data1.Remove(colname1);
+                    ProOrder(data1,colname1);
+                    data1.OrderBy(strs=>strs[1]);
                     data1 = data1.OrderBy(strs => TrimStartZero(strs[0])).ToArray();
                     len1 = colname1.Length;
                 }
@@ -107,6 +110,7 @@ namespace 自动全外连接
                 {
                     colname2 = data2.First();
                     data2.Remove(colname2);
+                    ProOrder(data2,colname2);
                     data2 = data2.OrderBy(strs => TrimStartZero(strs[0])).ToArray();
                     len2 = colname2.Length;
                 }
@@ -212,7 +216,12 @@ namespace 自动全外连接
             //避免以债券开头的0被Excel处理掉
             static string TrimStartZero(string str)
             {
-                return PaddingQuotes(str.Trim('\"').TrimStart('0'));
+                //取双引号和开头的0
+                var res = str.Trim('\"').TrimStart('0');
+                //不是带后缀的情况
+                var index = str.LastIndexOf(".");
+                res = res.Substring(0,index==-1?res.Length:index);
+                return PaddingQuotes(res);
             }
             static IList<string[]> File2Array(string path)
             {
@@ -246,6 +255,15 @@ namespace 自动全外连接
                     Console.WriteLine("默认按CSV格式输出");
                     Array2CSV(output,data);
                 }
+            }
+
+            //预先根据持仓数量排序
+            static void ProOrder(IList<string[]> data,string[] colname)
+            {
+                    int index_amount = Array.FindIndex(colname,0,str=>str.IndexOf("持仓数量") > 0 ||str.ToLower().IndexOf("holding_amount")>0);
+                    if(index_amount>0 && index_amount <colname.Length)
+                        data.OrderByDescending(strs => strs[index_amount]);
+
             }
         }
     }
